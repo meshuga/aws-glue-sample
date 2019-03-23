@@ -2,23 +2,24 @@ AWSTemplateFormatVersion: 2010-09-09
 Parameters:
   TripdataRawCrawlerName:
     Type: String
-    Default: yellow_tripdata-raw-1
+    Default: yellow_tripdata-raw
   TripdataCleanedCrawlerName:
     Type: String
-    Default: yellow_tripdata-cleaned-1
+    Default: yellow_tripdata-cleaned
   TripdataDatabaseName:
     Type: String
-    Default: yellow_tripdata-1
-  TripdataTablePrefixName:
-    Type: String
-    Default: yellow_tripdata_
+    Default: yellow_tripdata
 Resources:
   RidesS3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
-  GlueScriptS3Bucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
+  YellowTripdataDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Ref TripdataDatabaseName
+        Description: "AWS Glue container to hold metadata tables for the rides crawler"
   GlueRole:
     Type: AWS::IAM::Role
     Properties:
@@ -43,13 +44,6 @@ Resources:
                 Effect: "Allow"
                 Action: "*"
                 Resource: "*"
-  YellowTripdataDatabase:
-    Type: AWS::Glue::Database
-    Properties:
-      CatalogId: !Ref AWS::AccountId
-      DatabaseInput:
-        Name: !Ref TripdataDatabaseName
-        Description: "AWS Glue container to hold metadata tables for the rides crawler"
   YellowRidesRawCrawler:
     Type: AWS::Glue::Crawler
     Properties:
@@ -64,11 +58,11 @@ Resources:
               - - 's3://'
                 - !Ref RidesS3Bucket
                 - '/raw'
-      TablePrefix: !Ref TripdataTablePrefixName
       SchemaChangePolicy:
         UpdateBehavior: "UPDATE_IN_DATABASE"
         DeleteBehavior: "LOG"
-      Configuration: "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}"
+      Configuration: "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},
+      \"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}"
   YellowRidesCleanedCrawlerFlights:
     Type: AWS::Glue::Crawler
     Properties:
@@ -83,11 +77,11 @@ Resources:
               - - 's3://'
                 - !Ref RidesS3Bucket
                 - '/cleaned'
-      TablePrefix: !Ref TripdataTablePrefixName
       SchemaChangePolicy:
         UpdateBehavior: "UPDATE_IN_DATABASE"
         DeleteBehavior: "LOG"
-      Configuration: "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}"
+      Configuration: "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},
+      \"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}"
 Outputs:
   RidesS3Bucket:
     Value: !Ref RidesS3Bucket
