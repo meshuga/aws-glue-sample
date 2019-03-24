@@ -16,9 +16,6 @@ Resources:
   RidesS3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
-  GlueScriptS3Bucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
   GlueRole:
     Type: AWS::IAM::Role
     Properties:
